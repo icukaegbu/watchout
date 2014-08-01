@@ -17,40 +17,40 @@ var radius = 6;
 var xPos;
 var yPos;
 
-  // Create svg
-  var svg = d3.select('.board').append('svg').attr('height', height).attr('width', width);
+// Create svg
+var svg = d3.select('.board').append('svg').attr('height', height).attr('width', width);
 
-  // Create array of random positions
-  var createPositions = function(){ 
-    for(var i = 0; i < numEnemies; i++) {
-      xPos = Math.random() * width;
-      yPos = Math.random() * height;
-      positions[i] = {x: xPos, y: yPos};
-    }
-  };
-  createPositions();
+// Create array of random positions
+var createPositions = function(){ 
+for(var i = 0; i < numEnemies; i++) {
+  xPos = Math.random() * width;
+  yPos = Math.random() * height;
+  positions[i] = {x: xPos, y: yPos};
+}
+};
+createPositions();
 
-  // Tell the circles to appear for the first time
-  var circles = svg.selectAll('circle').data(positions).enter().append('circle');
+// Tell the circles to appear for the first time
+var circles = svg.selectAll('circle').data(positions).enter().append('circle');
 
-  // Assign positions and radius (size) to all circles!
-  var assignPositions = function() {
-    circles.transition().duration(transitionDuration)
-           .attr('cx', function(d) { return d.x; })
-           .attr('cy', function(d) { return d.y; })
-           .attr('r', radius);
-  };
-  assignPositions();
+// Assign positions and radius (size) to all circles!
+var assignPositions = function() {
+circles.transition().duration(transitionDuration)
+       .attr('cx', function(d) { return d.x; })
+       .attr('cy', function(d) { return d.y; })
+       .attr('r', radius);
+};
+assignPositions();
 
-  // Update the circles with new positions
-  var newPositions = function() {
-    createPositions();
-    circles = svg.selectAll('circle').data(positions);
-    assignPositions();
-  };
+// Update the circles with new positions
+var newPositions = function() {
+createPositions();
+circles = svg.selectAll('circle').data(positions);
+assignPositions();
+};
 
-  // Update the circles every 2 seconds
-  setInterval(newPositions, setIntervalDuration);
+// Update the circles every 2 seconds
+setInterval(newPositions, setIntervalDuration);
 
 // Create several enemies and put them on the Board
 // Randomly change their positions (move the enemies)
