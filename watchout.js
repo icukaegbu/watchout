@@ -72,12 +72,13 @@ var updateEnemies = function(enemyData){
   function checkCollision(enemy, callback) {
     players.forEach(function(player) {
       var radiusSum = parseFloat(enemy.attr('r')) + player.r;
-      var xDiff = parseFloat(enemy.attr('x')) - player.y;
-      var yDiff = parseFloat(enemy.attr('y')) - player.y;
+      var x = parseFloat(enemy.attr('x')) - player.y;
+      var y = parseFloat(enemy.attr('y')) - player.y;
 
-      var separation = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
-      //debugger;
-      if (separation < radiusSum) {
+      //var separation = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+      var gap = Math.sqrt(x*x + y*y);
+
+      if (gap < radiusSum) {
         callback();
         return true;
       }
@@ -93,7 +94,7 @@ var updateEnemies = function(enemyData){
     updateCollision();
   }
 
-  function tweenColl(endPoint) {
+  function onCollisionTween(endPoint) {
     var enemy = d3.select(this);
 
     var startPos = {
@@ -120,6 +121,83 @@ var updateEnemies = function(enemyData){
   }
 
   enemies.transition().duration(1050)
-                      .tween('custom', tweenColl);
+                      .tween('custom', onCollisionTween);
+};
+
+var Player = function(options){
+  this.color = 'blue';
+  this.options = options;
+  this.r = 10;
+  this.setX(0);
+  this.setY(0);
+};
+
+Player.prototype.onDragging = function(){
+  var self = this;
+  var dragMove = function(){
+    self.move(d3.event.dx, d3.event.dy);
+  };
+  var drag = d3.behavior.drag().on('drag', dragMove);
+  this.elem.call(drag);
+};
+
+Player.prototype.getX = function(){
+  return this.x;
+};
+
+Player.prototype.setX = function(x){
+  var min = this.options.padding;
+  var max = this.options.width - this.options.padding;
+  if(x <= min){
+    x =min;
+  } else if (x >= max){
+    x = max;
+  }
+  this.x = x;
+};
+
+Player.prototype.getY = function(){
+  return this.y;
+};
+
+Player.prototype.setY = function(y){
+  var min = this.options.padding;
+  var max = this.options.height - this.options.padding;
+  if(y <= min){
+    y =min;
+  } else if (y >= max){
+    y = max;
+  }
+  this.y = y;
+};
+Player.prototype.transform = function(opts){
+  var x = opts.x || this.getX();
+  this.setX(x);
+  var y = opts.y || this.getX();
+  this.setY(y);
+  var trans = 'translate(' + this.getX() + ',' + this.getY() + ')';
+  this.elem.attr('transform', trans);
+};
+
+Player.prototype.move = function(dx, dy) {
+  this.transform({
+    x:this.getX() + dx,
+    y:this.getY() + dy
+  });
+};
+
+Player.prototype.show = function(board){
+  this.elem = board.append('svg:circle')
+                  .attr('class', 'player')
+                  .attr('fill', this.color)
+                  .attr('r', this.r);
+
+  this.transform({
+    x: this.options.width * 0.5, 
+    y: this.options.height * 0.5
+  });
+
+
+  this.onDragging();
 };
 
