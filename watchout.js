@@ -39,7 +39,7 @@ function updateCollision() {
   d3.select('.collisions').select('span').text(records.collision.toString());
 }
 
-function createEnemies() {
+function makeEnemies() {
   var enemies = [];
 
   for(var i = 0; i < options.enemyCount; i++){
@@ -51,7 +51,7 @@ function createEnemies() {
 
 
 
-var updateEnemies = function(enemyData){
+var changeEnemies = function(enemyData){
   var enemies = gameboard.selectAll('image.enemy').data(enemyData, function(d){ return d.id; });
 
 
@@ -203,8 +203,8 @@ Player.prototype.show = function(board){
 
 function startGame() {
   function turn() {
-    newEnemyPos = createEnemies();
-    updateEnemies(newEnemyPos);
+    newEnemyPos = makeEnemies();
+    changeEnemies(newEnemyPos);
   }
 
   function increaseScore() {
