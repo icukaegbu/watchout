@@ -2,3 +2,10 @@
 .board{
   background-color: gray;
 }
+
+
+.gameboard{
+  background-color: gray;
+  width: 800;
+  height: 600;
+}

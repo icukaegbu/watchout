@@ -1,74 +1,125 @@
-// 3 Objects
-// The Board, The Blacks and The Hero
+var options = {
+  enemyCount : 20,
+  height: this.innerHeight * 0.90,
+  width: this.innerWidth * 0.90,
+  padding: 20
+};
 
-var width = 600;
-var height = 500;
+var score = {
+  score: 0,
+  highScore: 0,
+  collision: 0
+};
 
-// Create a Board
-d3.select('.board').style('height', height + 'px')
-                   .style('width', width + 'px');
+//Axis
+var axis = {
+  x: d3.scale.linear().domain([0,100]).range([0, options.width]),
+  y: d3.scale.linear().domain([0,100]).range([0, options.height])
+};
 
-// Set up
-var numEnemies = 30;
-var transitionDuration = 1500;
-var setIntervalDuration = 2000;
-var positions = [];
-var radius = 6;
-var xPos;
-var yPos;
+var gameboard = d3.select('.gameboard')
+                  .append('svg:svg')
+                  .attr('width', options.width)
+                  .attr('height', options.height)
+                  .style('background', '#EEE')
+                  .style('display', 'block')
+                  .style('margin', '0 auto');
 
-// Create svg
-var svg = d3.select('.board').append('svg').attr('height', height).attr('width', width);
-
-// Create array of random positions
-var createPositions = function(){ 
-for(var i = 0; i < numEnemies; i++) {
-  xPos = Math.random() * width;
-  yPos = Math.random() * height;
-  positions[i] = {x: xPos, y: yPos};
+function updateScore() {
+  d3.select('.current').select('span').text(score.score.toString());
 }
+
+function updateHighScore() {
+  score.highScore = Math.max(score.highScore, score.score);
+
+  d3.select('.high').select('span').text(score.highScore.toString());
+}
+
+function updateCollision() {
+  d3.select('.collisions').select('span').text(score.collision.toString());
+}
+
+function createEnemies() {
+  var enemies = [];
+
+  for(var i = 0; i < options.enemyCount; i++){
+    enemies.push({ id: i, x: Math.random()*100, y: Math.random()*100 });
+  }
+
+  return enemies;
+}
+
+
+
+var updateEnemies = function(enemyData){
+  var enemies = gameboard.selectAll('image.enemy').data(enemyData, function(d){ return d.id; });
+
+
+  enemies.enter().append('svg:image')
+                 .attr('class', 'enemy')
+                 .attr('x', function(enemy){ return axis.x(enemy.x);})
+                 .attr('y', function(enemy){ return axis.y(enemy.y);})
+                 .attr('r', 25)
+                 .attr('height', 25)
+                 .attr('width', 25)
+                 .attr('xlink:href', 'asteroid.png');
+
+
+  //Removes any enemies who are no longer in the enemies array
+  enemies.exit().remove();
+
+
+  function checkCollision(enemy, callback) {
+    players.forEach(function(player) {
+      var radiusSum = parseFloat(enemy.attr('r')) + player.r;
+      var xDiff = parseFloat(enemy.attr('x')) - player.y;
+      var yDiff = parseFloat(enemy.attr('y')) - player.y;
+
+      var separation = Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
+      //debugger;
+      if (separation < radiusSum) {
+        callback();
+        return true;
+      }
+      return false;
+    });
+  }
+
+  function onCollision() {
+    updateHighScore();
+    score.score = 0;
+    updateScore();
+    score.collision++;
+    updateCollision();
+  }
+
+  function tweenColl(endPoint) {
+    var enemy = d3.select(this);
+
+    var startPos = {
+      x: parseFloat(enemy.attr('x')),
+      y: parseFloat(enemy.attr('y'))
+    };
+
+    var endPos = {
+      x: axis.x(endPoint.x),
+      y: axis.y(endPoint.y)
+    };
+
+    return function(t) {
+      checkCollision(enemy, onCollision);
+
+      enemyNextPos = {
+        x: startPos.x + (endPos.x - startPos.x)*t,
+        y: startPos.y + (endPos.y - startPos.y)*t
+      };
+
+      enemy.attr('x', enemyNextPos.x)
+           .attr('y', enemyNextPos.y);
+    };
+  }
+
+  enemies.transition().duration(1050)
+                      .tween('custom', tweenColl);
 };
-createPositions();
-
-// Tell the circles to appear for the first time
-var circles = svg.selectAll('circle').data(positions).enter().append('circle');
-
-// Assign positions and radius (size) to all circles!
-var assignPositions = function() {
-circles.transition().duration(transitionDuration)
-       .attr('cx', function(d) { return d.x; })
-       .attr('cy', function(d) { return d.y; })
-       .attr('r', radius);
-};
-assignPositions();
-
-// Update the circles with new positions
-var newPositions = function() {
-createPositions();
-circles = svg.selectAll('circle').data(positions);
-assignPositions();
-};
-
-// Update the circles every 2 seconds
-setInterval(newPositions, setIntervalDuration);
-
-// Create several enemies and put them on the Board
-// Randomly change their positions (move the enemies)
-// Find out when our Hero is hit by an enemy, reduce Hero's point
-
-// WHAT TO TRACK IN THE ENEMY
-// -Position in X and Y axes
-// --store as an Array of Arrays || a Point object with X and Y axes
-// --Random position generator - generates random X,Y and assigns to //   enemies
-// --Move the enemy by giving him a new position and using the transition method in d3 to move them
-
-// Have a mouse controlled Hero
-// Points accrue as the Hero and avoids being hit by the enemy
-// Keep track of high score
-
-
-// TOUGH QUESTIONS
-// --How do we control the Hero with a mouse
-// --How do we find out when he has being hit by an enemy
-
 
