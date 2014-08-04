@@ -5,8 +5,8 @@ var options = {
   padding: 20
 };
 
-var score = {
-  score: 0,
+var records = {
+  records: 0,
   highScore: 0,
   collision: 0
 };
@@ -17,7 +17,7 @@ var axis = {
   y: d3.scale.linear().domain([0,100]).range([0, options.height])
 };
 
-var gameboard = d3.select('.gameboard')
+var gameboard = d3.select('.board')
                   .append('svg:svg')
                   .attr('width', options.width)
                   .attr('height', options.height)
@@ -26,17 +26,17 @@ var gameboard = d3.select('.gameboard')
                   .style('margin', '0 auto');
 
 function updateScore() {
-  d3.select('.current').select('span').text(score.score.toString());
+  d3.select('.current').select('span').text(records.records.toString());
 }
 
 function updateHighScore() {
-  score.highScore = Math.max(score.highScore, score.score);
+  records.highScore = Math.max(records.highScore, records.records);
 
-  d3.select('.high').select('span').text(score.highScore.toString());
+  d3.select('.high').select('span').text(records.highScore.toString());
 }
 
 function updateCollision() {
-  d3.select('.collisions').select('span').text(score.collision.toString());
+  d3.select('.collisions').select('span').text(records.collision.toString());
 }
 
 function createEnemies() {
@@ -88,9 +88,9 @@ var updateEnemies = function(enemyData){
 
   function onCollision() {
     updateHighScore();
-    score.score = 0;
+    records.records = 0;
     updateScore();
-    score.collision++;
+    records.collision++;
     updateCollision();
   }
 
@@ -125,7 +125,7 @@ var updateEnemies = function(enemyData){
 };
 
 var Player = function(options){
-  this.color = 'blue';
+  this.color = 'red';
   this.options = options;
   this.r = 10;
   this.setX(0);
@@ -201,3 +201,27 @@ Player.prototype.show = function(board){
   this.onDragging();
 };
 
+function startGame() {
+  function turn() {
+    newEnemyPos = createEnemies();
+    updateEnemies(newEnemyPos);
+  }
+
+  function increaseScore() {
+    records.records++;
+    updateScore();
+  }
+
+  turn();
+  setInterval(turn, 1000);
+
+  setInterval(increaseScore, 50);
+}
+
+var players = [];
+players.push(new Player(options));
+players.forEach(function(player){
+  player.show(gameboard);
+});
+
+startGame();
